@@ -31,15 +31,9 @@ a{color:inherit;text-decoration:none}
 @keyframes ltr{from{transform:translateY(110%)}to{transform:none}}
 #intro .t{font-family:var(--serif);font-style:italic;color:var(--acc);font-size:clamp(15px,2.4vw,22px);opacity:0;animation:fin 1s .8s ease forwards}
 @keyframes fin{to{opacity:1}}
-/* progress + cursor */
+/* progress */
 #pbar{position:fixed;top:0;left:0;right:0;height:2px;z-index:2100;pointer-events:none}
 #pbar i{display:block;height:100%;background:var(--acc);transform-origin:left;transform:scaleX(0)}
-#cur{position:fixed;z-index:2600;left:0;top:0;pointer-events:none;mix-blend-mode:difference}
-#cur .dot{width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);transition:opacity .3s}
-#cur .ring{position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;border:1px solid #fff;display:flex;align-items:center;justify-content:center;transition:width .35s cubic-bezier(.2,.7,.2,1),height .35s}
-#cur .ring span{font-family:var(--mono);font-size:8px;letter-spacing:.24em;color:#fff;opacity:0;transition:opacity .2s}
-#cur.view .ring{width:78px;height:78px}#cur.view .ring span{opacity:1}#cur.view .dot{opacity:0}
-@media(pointer:coarse){#cur{display:none}}
 /* nav */
 #nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,36px);transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
 #nav.scrolled{background:rgba(10,9,8,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--line)}
