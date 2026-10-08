@@ -1,0 +1,63 @@
+name: Fetch local covers
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-covers.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-covers
+  cancel-in-progress: true
+
+jobs:
+  covers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick curl
+
+      - name: Download & compress covers
+        run: |
+          mkdir -p images/covers
+          declare -A U=(
+            [MS]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/147639a71-e3bc-4299-9eaa-a7279ef3de25.png"
+            [AUR]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1417b83c9-652f-443f-a2fb-195136014c66.png"
+            [NIA]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/10c18961c-4582-407f-bc8f-c64fdb2789db.png"
+            [SORA]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/17e2fbb34-75b9-4735-a09d-a28c88cce1ed.png"
+            [KAIRO]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/11d03f9b0-a533-4e4f-b2dd-110c1a956ebc.png"
+            [MILO]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/11af33997-8f15-4fab-bf0a-f0282d4541f4.png"
+            [ELIAS]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/10ecba782-6b45-4188-b1b9-6ce4f7cd92e5.png"
+            [VERA]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/17018636f-fa3c-42dc-9822-a7821cab8eda.png"
+            [PC]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1984af3f8-9a91-4c86-a16d-c1ef0092354d.png"
+            [WS]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1fd2bc5ad-93df-46c1-b160-101281bf121e.png"
+            [STUDIO]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/10f2c5870-f2d8-4784-8b99-dccd307c45f8.png"
+            [TOKYO]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1c6f8c521-2b2f-4834-a44f-43631c657d42.png"
+            [CLUB]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1cf641d6d-ebb8-4db0-8d7c-b4d8e2a290df.png"
+            [TAPE]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1f1b1c950-a85c-4d4e-afad-4c93a10a1b33.png"
+            [SESSION]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/14057731c-3857-48ad-8384-2be48252c993.png"
+            [ORB]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/1d6b83efe-923b-4c42-b1e3-faa994895aa9.png"
+            [HALL]="https://image.qwenlm.ai/public_source/f63825b7-d7f9-466e-9e7c-e54c1b0e605a/130ed182c-3e03-4bbf-80a3-fff2246ac715.png"
+          )
+          for k in "${!U[@]}"; do
+            echo "Fetching $k"
+            curl -fsSL --max-time 60 -o "/tmp/$k.png" "${U[$k]}" || continue
+            convert "/tmp/$k.png" -resize '800x800>' -quality 82 "images/covers/$k.jpg" || cp "/tmp/$k.png" "images/covers/$k.png"
+          done
+          ls -la images/covers/
+
+      - name: Commit covers
+        run: |
+          git config user.name "sonora-bot"
+          git config user.email "sonora-bot@users.noreply.github.com"
+          git add images/covers/
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Add local cover images under images/covers"
+          git push
