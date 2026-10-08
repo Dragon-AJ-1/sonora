@@ -67,6 +67,7 @@
 <script src="js/phase-a.js"></script>
 <script src="js/deeplink.js"></script>
 <script src="js/radio.js"></script>
+<script src="js/live-vc.js"></script>
 <script src="js/share.js"></script>
 <script src="js/foryou.js"></script>
 <script src="js/seo.js"></script>
@@ -92,6 +93,7 @@
     if(window.SONORA_RADIO){
       SONORA_RADIO.load().then(function(){ SONORA_RADIO.renderTicker(); });
     }
+    if(window.SONORA_LIVE_VC) SONORA_LIVE_VC.refresh();
   }
   var obs = new MutationObserver(function(){ enhanceRadioPage(); });
   obs.observe(document.getElementById('view')||document.body, {childList:true, subtree:true});
