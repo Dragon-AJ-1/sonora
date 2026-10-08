@@ -40,7 +40,7 @@
 #shareFab:hover{border-color:#D9A441;color:#D9A441}
 @media(max-width:640px){#shareFab{bottom:140px;right:12px;font-size:9px;padding:8px 12px}}
 .why{display:block;font-size:11px;color:var(--mut);margin-top:6px;line-height:1.35}
-img[src^="http"]{background:linear-gradient(135deg,#1a1612,#2a241c)}
+.acard .im img,.ar-hero .im img{background:linear-gradient(135deg,#1a1612,#2a241c);object-fit:cover}
 </style>
 </head>
 <body>
@@ -58,6 +58,7 @@ img[src^="http"]{background:linear-gradient(135deg,#1a1612,#2a241c)}
 <div id="modal" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"><i></i><span id="toastTx"></span></div>
 <button type="button" id="shareFab" data-share="open" title="Share library (local)">Share</button>
+<script src="js/covers-boot.js"></script>
 <script src="js/data.js"></script>
 <script src="js/covers.js"></script>
 <script src="js/eq.js"></script>
@@ -69,6 +70,7 @@ img[src^="http"]{background:linear-gradient(135deg,#1a1612,#2a241c)}
 <script src="js/share.js"></script>
 <script src="js/foryou.js"></script>
 <script src="js/seo.js"></script>
+<script src="js/phase-b.js"></script>
 <script>
 (function(){
   function enhanceRadioPage(){
@@ -93,13 +95,11 @@ img[src^="http"]{background:linear-gradient(135deg,#1a1612,#2a241c)}
   var obs = new MutationObserver(function(){ enhanceRadioPage(); });
   obs.observe(document.getElementById('view')||document.body, {childList:true, subtree:true});
   setTimeout(enhanceRadioPage, 800);
-
   document.addEventListener('click', function(e){
     var t = e.target && e.target.closest && e.target.closest('[data-a="like"], [data-a="play-ref"], [data-a="play-album"]');
     if(t && window.SONORA_FORYOU) setTimeout(function(){ SONORA_FORYOU.refresh(); }, 400);
   });
 })();
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('./sw.js').catch(function () {});
