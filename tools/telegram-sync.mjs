@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 /**
  * SONORA Telegram → repo sync
- * Env (GitHub Actions secrets):
- *   TELEGRAM_BOT_TOKEN  — bot token (NEVER commit)
- *   TELEGRAM_CHANNEL_ID — @MrA_Music or numeric -100...
- *   GITHUB_TOKEN        — provided by Actions for commits
- *
- * Bot must be channel ADMIN to receive channel_post updates.
- * Bot API cannot read full channel history — only new posts after admin.
+ * Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
+ * Bot must be channel admin. Only NEW posts from humans are received.
  */
 import fs from 'fs';
 import path from 'path';
@@ -22,7 +17,7 @@ const FEED = path.join(AUDIO, 'radio-feed.json');
 const OFFSET_FILE = path.join(ROOT, '.telegram-offset');
 
 if (!TOKEN) {
-  console.error('Missing TELEGRAM_BOT_TOKEN');
+  console.error('Missing TELEGRAM_BOT_TOKEN secret');
   process.exit(1);
 }
 
@@ -39,27 +34,22 @@ function api(method, params = {}) {
 }
 
 function slug(s) {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60) || 'track';
+  return (
+    String(s || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'track'
+  );
 }
 
 function parseCaption(text) {
-  const out = {
-    title: '',
-    artist: '',
-    album: '',
-    year: null,
-    genre: '',
-    duration: ''
-  };
+  const out = { title: '', artist: '', album: '', year: null, genre: '', duration: '' };
   if (!text) return out;
   const lines = String(text).split(/\r?\n/);
   const map = [
     [/^(title|عنوان)\s*[:：]\s*(.+)$/i, 'title'],
-    [/^(artist|خواننده|خواننده)\s*[:：]\s*(.+)$/i, 'artist'],
+    [/^(artist|خواننده)\s*[:：]\s*(.+)$/i, 'artist'],
     [/^(album|آلبوم)\s*[:：]\s*(.+)$/i, 'album'],
     [/^(year|سال)\s*[:：]\s*(\d{4})\s*$/i, 'year'],
     [/^(genre|ژانر)\s*[:：]\s*(.+)$/i, 'genre'],
@@ -75,7 +65,6 @@ function parseCaption(text) {
       }
     }
   }
-  // fallback: "Artist - Title" on first non-empty line
   if (!out.title || !out.artist) {
     const first = lines.map((l) => l.trim()).find((l) => l && !l.startsWith('#') && !l.startsWith('🎵'));
     if (first && first.includes(' - ')) {
@@ -113,9 +102,8 @@ async function downloadFile(fileId, dest) {
 function upsertManifest(meta, fileRel) {
   const man = readJson(MANIFEST, { tracks: [] });
   if (!Array.isArray(man.tracks)) man.tracks = [];
-  const id = meta.id;
   const entry = {
-    id,
+    id: meta.id,
     file: fileRel,
     title: meta.title,
     artist: meta.artist,
@@ -124,7 +112,7 @@ function upsertManifest(meta, fileRel) {
     genre: meta.genre || 'Independent',
     duration: meta.duration || undefined
   };
-  const i = man.tracks.findIndex((t) => t.id === id);
+  const i = man.tracks.findIndex((t) => t.id === meta.id);
   if (i >= 0) man.tracks[i] = entry;
   else man.tracks.push(entry);
   writeJson(MANIFEST, man);
@@ -135,38 +123,37 @@ function upsertFeed(meta, fileRel, caption) {
   if (!Array.isArray(feed.tracks)) feed.tracks = [];
   if (!Array.isArray(feed.messages)) feed.messages = [];
   feed.updatedAt = new Date().toISOString();
-  const row = {
-    id: meta.id,
-    title: meta.title,
-    artist: meta.artist,
-    file: fileRel
-  };
-  if (!feed.tracks.some((t) => t.id === meta.id)) feed.tracks.push(row);
+  if (!feed.station) {
+    feed.station = { id: 'tg-live', name: 'SONORA Live', tag: 'From the channel', host: 'Channel' };
+  }
+  const row = { id: meta.id, title: meta.title, artist: meta.artist, file: fileRel };
+  const ix = feed.tracks.findIndex((t) => t.id === meta.id);
+  if (ix >= 0) feed.tracks[ix] = row;
+  else feed.tracks.push(row);
   if (caption) {
-    feed.messages.push({ t: caption.slice(0, 200), at: feed.updatedAt });
+    feed.messages.push({ t: String(caption).slice(0, 200), at: feed.updatedAt });
     feed.messages = feed.messages.slice(-20);
   }
   writeJson(FEED, feed);
 }
 
+function chatMatches(chat) {
+  if (!chat) return false;
+  const uname = chat.username ? '@' + chat.username : '';
+  const idStr = String(chat.id || '');
+  if (CHANNEL.startsWith('@')) return uname.toLowerCase() === CHANNEL.toLowerCase();
+  return idStr === String(CHANNEL);
+}
+
 async function processUpdate(u) {
   const msg = u.channel_post || u.message;
   if (!msg) return false;
-  // filter channel
-  const chat = msg.chat || {};
-  const uname = chat.username ? '@' + chat.username : '';
-  const idStr = String(chat.id || '');
-  if (
-    CHANNEL.startsWith('@') &&
-    uname.toLowerCase() !== CHANNEL.toLowerCase() &&
-    idStr !== CHANNEL
-  ) {
-    // still allow if channel id matches numeric
-    if (CHANNEL.startsWith('-') && idStr !== CHANNEL) return false;
-    if (CHANNEL.startsWith('@') && uname.toLowerCase() !== CHANNEL.toLowerCase()) return false;
-  }
+  if (!chatMatches(msg.chat)) return false;
 
-  const audio = msg.audio || msg.voice || (msg.document && /audio|mpeg|mp3/i.test(msg.document.mime_type || '') ? msg.document : null);
+  const audio =
+    msg.audio ||
+    msg.voice ||
+    (msg.document && /audio|mpeg|mp3/i.test(msg.document.mime_type || '') ? msg.document : null);
   if (!audio) return false;
 
   const cap = parseCaption(msg.caption || msg.text || '');
@@ -176,8 +163,12 @@ async function processUpdate(u) {
   const fileRel = `audio/${id}.mp3`;
   const dest = path.join(ROOT, fileRel);
 
-  console.log('Syncing', title, '—', artist);
-  await downloadFile(audio.file_id, dest);
+  if (fs.existsSync(dest)) {
+    console.log('Already have', id, '— refreshing metadata');
+  } else {
+    console.log('Downloading', title, '—', artist);
+    await downloadFile(audio.file_id, dest);
+  }
 
   const meta = {
     id,
@@ -186,7 +177,11 @@ async function processUpdate(u) {
     album: cap.album,
     year: cap.year,
     genre: cap.genre,
-    duration: cap.duration || (audio.duration ? `${Math.floor(audio.duration / 60)}:${String(audio.duration % 60).padStart(2, '0')}` : '')
+    duration:
+      cap.duration ||
+      (audio.duration
+        ? `${Math.floor(audio.duration / 60)}:${String(audio.duration % 60).padStart(2, '0')}`
+        : '')
   };
   upsertManifest(meta, fileRel);
   upsertFeed(meta, fileRel, msg.caption || `${artist} — ${title}`);
@@ -199,12 +194,14 @@ async function main() {
     offset = parseInt(fs.readFileSync(OFFSET_FILE, 'utf8'), 10) || 0;
   } catch {}
 
+  console.log('Polling Telegram from offset', offset, 'channel', CHANNEL);
   const updates = await api('getUpdates', {
     offset,
     limit: 50,
     timeout: 0,
     allowed_updates: JSON.stringify(['channel_post', 'message'])
   });
+  console.log('Updates:', updates.length);
 
   let changed = false;
   let maxOffset = offset;
@@ -219,18 +216,19 @@ async function main() {
   fs.writeFileSync(OFFSET_FILE, String(maxOffset));
 
   if (changed) {
+    execSync('git config user.name "sonora-bot"');
+    execSync('git config user.email "sonora-bot@users.noreply.github.com"');
+    execSync('git add audio/ .telegram-offset || true');
     try {
-      execSync('git config user.name "sonora-bot"');
-      execSync('git config user.email "sonora-bot@users.noreply.github.com"');
-      execSync('git add audio/ .telegram-offset');
-      execSync('git diff --cached --quiet || git commit -m "chore(telegram): sync channel audio"');
+      execSync('git diff --cached --quiet');
+      console.log('Nothing to commit');
+    } catch {
+      execSync('git commit -m "chore(telegram): sync channel audio"');
       execSync('git push');
       console.log('Pushed changes');
-    } catch (e) {
-      console.error('git push issue', e.message);
     }
   } else {
-    console.log('No new audio posts');
+    console.log('No new audio posts to sync (post from your human account with caption template)');
   }
 }
 
