@@ -54,7 +54,9 @@
 .btn:focus-visible,
 .eq-chip:focus-visible,
 .eq-btn:focus-visible,
-.eq-power:focus-visible {
+.eq-power:focus-visible,
+.share-x:focus-visible,
+.share-tile:focus-visible {
   outline: 2px solid #D9A441;
   outline-offset: 2px;
 }
@@ -288,11 +290,7 @@ footer button:hover { color: #D9A441; }
 
 #player .trow { cursor: pointer; }
 
-/* ============================================================
-   FORCE GOLD on full-player chrome
-   Artist accent (setAccent) only tints background gradients,
-   never the play button / seek / volume / tabs.
-   ============================================================ */
+/* FORCE GOLD on full-player chrome */
 #player .ibtn.fill,
 #player .ctrl .ibtn.fill {
   background: #D9A441 !important;
@@ -333,4 +331,229 @@ footer button:hover { color: #D9A441; }
 }
 #toast.show {
   animation: fadeUp 0.25s ease;
+}
+
+/* ============================================================
+   SHARE SHEET — refined, closes properly
+   ============================================================ */
+#modal.open {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.share-sheet {
+  width: min(440px, 100%);
+  max-height: min(86vh, 640px);
+  overflow-y: auto;
+  background: linear-gradient(165deg, #161310 0%, #0e0c0a 100%);
+  border: 1px solid rgba(217, 164, 65, 0.22);
+  border-radius: 18px;
+  padding: 22px 22px 20px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 24px 64px rgba(0, 0, 0, 0.55);
+  animation: fadeUp 0.28s ease;
+}
+
+.share-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.share-kicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #D9A441;
+  margin-bottom: 6px;
+}
+
+.share-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4vw, 30px);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--ink);
+}
+
+.share-x {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line2);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.share-x:hover {
+  border-color: #D9A441;
+  color: #D9A441;
+  background: rgba(217, 164, 65, 0.08);
+}
+
+.share-lead {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink2);
+}
+
+.share-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.share-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 14px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  font: inherit;
+}
+.share-tile:hover {
+  border-color: rgba(217, 164, 65, 0.45);
+  background: rgba(217, 164, 65, 0.06);
+}
+.share-tile:active {
+  transform: scale(0.98);
+}
+
+.share-tile-ico {
+  font-size: 15px;
+  color: #D9A441;
+  line-height: 1;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.share-tile-t {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.share-tile-d {
+  font-size: 11px;
+  color: var(--mut);
+  line-height: 1.35;
+}
+
+.share-tile-file {
+  cursor: pointer;
+}
+
+.share-paste {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.share-paste-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-bottom: 8px;
+}
+
+.share-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line2);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.share-input:focus {
+  outline: none;
+  border-color: #D9A441;
+}
+
+.share-paste-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.share-note {
+  margin: 16px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mut);
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .share-grid { grid-template-columns: 1fr; }
+  .share-sheet { padding: 18px 16px 16px; border-radius: 14px; }
+}
+
+/* Share FAB — quieter, less "floating sticker" */
+#shareFab {
+  position: fixed;
+  right: 18px;
+  bottom: 96px;
+  z-index: 170;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(217, 164, 65, 0.28);
+  background: rgba(14, 12, 10, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink2);
+  padding: 11px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+#shareFab:hover {
+  border-color: #D9A441;
+  color: #D9A441;
+  background: rgba(22, 18, 14, 0.95);
+}
+@media (max-width: 640px) {
+  #shareFab {
+    bottom: 148px;
+    right: 14px;
+    font-size: 9px;
+    padding: 9px 13px;
+  }
 }
