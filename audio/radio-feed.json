@@ -1,0 +1,24 @@
+{
+  "_readme": [
+    "SONORA Radio feed — updated by the Telegram bot or by hand.",
+    "tracks: ordered list of track ids that exist in audio/manifest.json (or demo ids).",
+    "messages: optional on-air text lines (from channel posts) shown as a live ticker.",
+    "streamUrl: optional external HLS/Icecast URL if you host a real stream elsewhere (leave empty on pure GitHub Pages).",
+    "Keep this file small. Do not embed binary audio here."
+  ],
+  "updatedAt": "2026-10-08T00:00:00Z",
+  "station": {
+    "id": "tg-live",
+    "name": "SONORA Live",
+    "tag": "From the channel",
+    "host": "Channel"
+  },
+  "streamUrl": "",
+  "tracks": [
+    { "id": "my-song-01", "title": "My Song", "artist": "My Artist", "file": "audio/track1.mp3" },
+    { "id": "my-song-02", "title": "Second Example", "artist": "My Artist", "file": "audio/track2.mp3" }
+  ],
+  "messages": [
+    { "t": "Welcome to SONORA Live — tracks arrive from the channel.", "at": "2026-10-08T00:00:00Z" }
+  ]
+}
