@@ -176,8 +176,12 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&').replace(/</g,'<').
 function fmtDb(v){v=Math.round(v*10)/10;return (v>0?'+':'')+v;}
 function panelHTML(){
   var h='',i,k,c,on;
-  h+='<div class="eq-head"><span class="eq-title">EQUALIZER<span class="eq-sub">10-BAND GRAPHIC</span></span>';
-  h+='<button type="button" class="eq-power'+(state.enabled?' on':'')+'" data-eq="enabled" aria-pressed="'+(state.enabled?'true':'false')+'" aria-label="Enable or bypass the equalizer">'+(state.enabled?'ENABLED':'BYPASS')+'</button></div>';
+  h+='<div class="eq-head">';
+  h+='<span class="eq-title">EQUALIZER<span class="eq-sub">10-BAND GRAPHIC</span></span>';
+  h+='<span class="sp"></span>';
+  h+='<button type="button" class="eq-power'+(state.enabled?' on':'')+'" data-eq="enabled" aria-pressed="'+(state.enabled?'true':'false')+'" aria-label="Enable or bypass the equalizer">'+(state.enabled?'ENABLED':'BYPASS')+'</button>';
+  h+='<button type="button" class="eq-close" data-eq="close" aria-label="Close equalizer" title="Close (Esc)">×</button>';
+  h+='</div>';
   h+='<div class="eq-chips" role="group" aria-label="EQ presets">';
   var names=[];
   for(k in PRESETS)names.push(k);
@@ -261,6 +265,11 @@ function toggle(){
   open=!open;
   applyOpen();
 }
+function close(){
+  if(!open)return;
+  open=false;
+  applyOpen();
+}
 document.addEventListener('input',function(e){
   var t=e.target;
   if(!t||!t.getAttribute)return;
@@ -277,6 +286,7 @@ document.addEventListener('click',function(e){
   else if(a==='enabled')setEnabled(!state.enabled);
   else if(a==='reset'){setPreset('Flat');setEnabled(true);}
   else if(a==='save')saveAsPreset();
+  else if(a==='close')close();
 },false);
 window.EQ={
   init:init,
@@ -291,6 +301,7 @@ window.EQ={
   restore:function(o){restore(o);},
   mount:mount,
   toggle:toggle,
+  close:close,
   isOpen:function(){return open;},
   get enabled(){return state.enabled;},
   set enabled(v){setEnabled(!!v);},
