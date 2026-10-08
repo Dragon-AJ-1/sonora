@@ -1,1 +1,25 @@
-PLACEHOLDER
+/* SONORA fixes — core */
+.hero .bg::after{background:linear-gradient(to top,var(--bg) 0%,rgba(10,9,8,.35) 40%,rgba(10,9,8,.65) 100%)!important}
+.hero h1{text-shadow:0 4px 40px rgba(0,0,0,.45)}
+#miniProg,#pProg{cursor:pointer;position:relative}
+#mini{z-index:180}#player{z-index:220}#eqPanel{z-index:230}#searchOv,#modal{z-index:240}#toast{z-index:260}
+@media(max-width:800px){.mgrid>*{grid-column:span 3!important}.bigstory{grid-template-columns:1fr!important}.nav-c{display:none!important}}
+@media(max-width:560px){.mgrid>*{grid-column:span 6!important}.acard{width:160px}}
+.chip:focus-visible,.ibtn:focus-visible,.trow:focus-visible,.btn:focus-visible{outline:2px solid #D9A441;outline-offset:2px}
+#mini.on{bottom:0}
+@media(max-width:1180px){#mnav{display:flex!important}#mini.on{bottom:56px}body{padding-bottom:56px}body:has(#mini.on){padding-bottom:calc(56px + 72px)}}
+.trow.playing .tt,.trow.playing .n{color:#D9A441}
+#player .ibtn.fill,#player .ctrl .ibtn.fill,#mini .c .ibtn.fill{background:#D9A441!important;border-color:#D9A441!important;color:#0A0908!important}
+#player #pBar,#player #volBar,#mini #miniBar{background:#D9A441!important}
+#player .ta{color:#D9A441!important}
+#player .tabs button.on{color:var(--ink)!important;border-color:#D9A441!important}
+.acard .im{position:relative;border-radius:10px;overflow:hidden;background:var(--panel);aspect-ratio:1/1;display:block;width:100%;padding:0;border:none;cursor:pointer}
+.acard .im img{width:100%;height:100%;object-fit:cover}
+.acard .pb{position:absolute;right:10px;bottom:10px;width:42px;height:42px;border-radius:50%;background:#D9A441;color:#0a0908;display:flex;align-items:center;justify-content:center;opacity:0;z-index:3!important;border:none;cursor:pointer}
+.acard:hover .pb{opacity:1}
+.acard .im-hit{position:absolute;inset:0;z-index:1;background:transparent;border:none;cursor:pointer}
+.acard-meta{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.acard-meta .t{display:block;width:100%;margin:0!important;padding:0;border:none;background:none;text-align:left;font-weight:600;font-size:14px;color:var(--ink);cursor:pointer}
+.stories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:clamp(18px,2.5vw,28px)}
+.scard{width:100%!important;max-width:none}
+.scard-hit{display:flex;flex-direction:column;width:100%;text-align:left;background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:0}
