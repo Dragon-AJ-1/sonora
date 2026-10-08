@@ -1,9 +1,5 @@
 /**
  * SONORA Phase A — stability layer (GitHub Pages)
- * 1) Local covers only (strip external CDNs)
- * 2) Real audio paths for Midnight Signals + manifest
- * 3) Honest fallback (ms-01…08 only)
- * 4) Radio continuous queue from radio-feed + real files
  */
 (function () {
   'use strict';
@@ -20,67 +16,67 @@
   ];
 
   function isExternal(u) {
-    return typeof u === 'string' && /^https?:\/\//i.test(u);
+    return typeof u === 'string' && /^https?:\/\//i.test(u) && u.indexOf('github.io') < 0 && u.indexOf('localhost') < 0;
   }
 
-  function localCover(key, label, accent) {
+  function C(key) {
     if (window.SONORA_COVERS && SONORA_COVERS[key]) return SONORA_COVERS[key];
-    if (window.sonoraCover) {
-      return sonoraCover({ label: label || key, accent: accent || '#D9A441', seed: (key || '').length });
-    }
+    if (window.IMG && IMG[key]) return IMG[key];
     return '';
   }
 
   function patchCovers() {
-    var C = window.SONORA_COVERS || {};
-    if (window.IMG) {
-      Object.keys(C).forEach(function (k) {
-        IMG[k] = C[k];
+    if (window.IMG && window.SONORA_COVERS) {
+      Object.keys(SONORA_COVERS).forEach(function (k) {
+        IMG[k] = SONORA_COVERS[k];
       });
     }
     if (window.ARTISTS) {
       var amap = {
-        aurora: C.AUR,
-        nia: C.NIA,
-        sora: C.SORA,
-        kairo: C.KAIRO,
-        milo: C.MILO,
-        elias: C.ELIAS,
-        vera: C.VERA
+        aurora: C('AUR'),
+        nia: C('NIA'),
+        sora: C('SORA'),
+        kairo: C('KAIRO'),
+        milo: C('MILO'),
+        elias: C('ELIAS'),
+        vera: C('VERA')
       };
       Object.keys(ARTISTS).forEach(function (id) {
         var a = ARTISTS[id];
         if (!a) return;
-        if (isExternal(a.img) || !a.img) a.img = amap[id] || C.ORB || localCover('ORB', a.name, a.ac);
+        a.img = amap[id] || C('ORB');
       });
     }
     if (window.ALBUMS) {
       var albumMap = {
-        ms: C.MS,
-        gs: C.NIA,
-        nr: C.SORA,
-        bt: C.KAIRO,
-        ns: C.NIA,
-        fa: C.ELIAS,
-        pc: C.PC,
-        vh: C.VERA,
-        ws: C.WS
+        ms: C('MS'),
+        gs: C('NIA'),
+        nr: C('SORA'),
+        bt: C('KAIRO'),
+        ns: C('MILO'),
+        fa: C('ELIAS'),
+        pc: C('PC'),
+        vh: C('VERA'),
+        ws: C('WS')
       };
       ALBUMS.forEach(function (al) {
         if (!al) return;
-        if (isExternal(al.img) || !al.img) al.img = albumMap[al.id] || C.ORB;
+        al.img = albumMap[al.id] || C('ORB');
       });
     }
-    ['PLAYLISTS', 'STORIES', 'EVENTS', 'SESSIONS'].forEach(function (key) {
-      var arr = window[key];
-      if (!arr || !arr.length) return;
+    function forceOrb(arr) {
+      if (!arr) return;
       arr.forEach(function (item) {
-        if (item && isExternal(item.img)) item.img = C.ORB || C.SESSION || localCover('ORB', 'SONORA');
+        if (!item) return;
+        if (isExternal(item.img) || !item.img) item.img = C('ORB');
       });
-    });
+    }
+    forceOrb(window.PLAYLISTS);
+    forceOrb(window.STORIES);
+    forceOrb(window.EVENTS);
+    forceOrb(window.SESSIONS);
   }
 
-  /** Attach real file paths to Midnight Signals tracks */
   function patchMsAudio() {
     if (!window.ALBUMS) return;
     var ms = null;
@@ -91,66 +87,15 @@
       }
     }
     if (!ms || !ms.tracks) return;
-    var files = [
-      'audio/ms-01-glass-horizon.mp3',
-      'audio/ms-02-midnight-signals.mp3',
-      'audio/ms-03-half-awake.mp3',
-      'audio/ms-04-sodium-lights.mp3',
-      'audio/ms-05-blue-hour.mp3',
-      'audio/ms-06-terminal-dreams.mp3',
-      'audio/ms-07-afterglow.mp3',
-      'audio/ms-08-signal-fade.mp3'
-    ];
-    for (var t = 0; t < ms.tracks.length && t < files.length; t++) {
-      ms.tracks[t].file = files[t];
+    for (var t = 0; t < ms.tracks.length && t < REAL.length; t++) {
+      ms.tracks[t].file = REAL[t];
       ms.tracks[t].hasAudio = true;
     }
     ms.hasAudio = true;
   }
 
   function realPoolRefs() {
-    /* Only refs that resolve to existing files on disk */
     return ['ms:0', 'ms:1', 'ms:2', 'ms:3', 'ms:4', 'ms:5', 'ms:6', 'ms:7'];
-  }
-
-  function patchPlayback() {
-    try {
-      if (typeof AUDIO_FALLBACK !== 'undefined') {
-        window.AUDIO_FALLBACK = REAL[0];
-      }
-    } catch (e) {}
-
-    /* Safer onerror: cycle real MS files only */
-    if (window.audioEl) {
-      var origPlay = window.play;
-      if (typeof origPlay === 'function') {
-        window.play = function (alId, idx, ctx) {
-          origPlay(alId, idx, ctx);
-          audioEl.onerror = function () {
-            var i = (idx || 0) % REAL.length;
-            var alt = REAL[i];
-            try {
-              alt = new URL(alt, window.location.href).href;
-            } catch (err) {}
-            if (audioEl.src.indexOf('ms-0') === -1) {
-              audioEl.src = alt;
-              audioEl.play().catch(function () {});
-            } else if (typeof toast === 'function') {
-              toast('Audio unavailable — add file via manifest');
-            }
-          };
-        };
-      }
-    }
-  }
-
-  function feedTrackToPlayable(t, i) {
-    if (!t) return null;
-    /* Prefer manifest-merged albums; else play file directly via synthetic album */
-    if (t.file && window.audioEl) {
-      return { mode: 'file', file: t.file, title: t.title || t.id, artist: t.artist || 'SONORA', idx: i };
-    }
-    return null;
   }
 
   function playFileDirect(t) {
@@ -166,7 +111,6 @@
           on: true,
           ctx: 'radio'
         };
-        /* Prefer matching MS index when file is ms-* */
         var m = String(t.file).match(/ms-0([1-8])/);
         if (m) S.playing.i = parseInt(m[1], 10) - 1;
       }
@@ -196,7 +140,6 @@
       }
       if (st && typeof setAccent === 'function') setAccent(st.ac);
 
-      /* Prefer channel feed when available */
       var feed = window.SONORA_RADIO && SONORA_RADIO.getFeed && SONORA_RADIO.getFeed();
       if (feed && feed.streamUrl) {
         if (window.SONORA_RADIO.start) SONORA_RADIO.start();
@@ -211,7 +154,6 @@
           return;
         }
       }
-      /* Fallback: real MS pool only */
       if (typeof playRef === 'function') playRef(pool[0], 'radio');
       if (typeof toast === 'function') toast('On air — ' + ((st && st.n) || id || 'Radio'));
     };
@@ -225,7 +167,7 @@
           return {
             t: ft.title || ft.id,
             d: ft.duration || '',
-            al: { id: 'ms', t: 'SONORA Live', a: 'aurora', img: (window.SONORA_COVERS && SONORA_COVERS.ORB) || '' }
+            al: { id: 'ms', t: 'SONORA Live', a: 'aurora', img: C('ORB') }
           };
         }
       }
@@ -252,19 +194,14 @@
         return origNext(fromEnded);
       };
     }
-
-    /* Disable bogus radio timer that advanced idx without playing */
-    /* (harmless if S.radioT logic remains; nextTrack on ended is source of truth) */
   }
 
   function boot() {
     patchCovers();
     patchMsAudio();
-    patchPlayback();
     patchRadio();
-    /* Re-apply covers after manifest merge may create artists with ORB */
-    setTimeout(patchCovers, 600);
-    setTimeout(patchCovers, 2000);
+    setTimeout(patchCovers, 400);
+    setTimeout(patchCovers, 1500);
   }
 
   if (document.readyState === 'loading') {
