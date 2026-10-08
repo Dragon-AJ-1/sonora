@@ -1,24 +1,76 @@
 {
   "_readme": [
-    "SONORA Radio feed — updated by the Telegram bot or by hand.",
-    "tracks: ordered list of track ids that exist in audio/manifest.json (or demo ids).",
-    "messages: optional on-air text lines (from channel posts) shown as a live ticker.",
-    "streamUrl: optional external HLS/Icecast URL if you host a real stream elsewhere (leave empty on pure GitHub Pages).",
-    "Keep this file small. Do not embed binary audio here."
+    "SONORA Radio feed — updated by Telegram bot or by hand.",
+    "tracks must reference files that exist under /audio/.",
+    "messages: on-air text lines shown in the Radio ticker.",
+    "streamUrl: optional external HLS/Icecast (leave empty on pure GitHub Pages)."
   ],
-  "updatedAt": "2026-10-08T00:00:00Z",
+  "updatedAt": "2026-10-08T12:00:00Z",
   "station": {
     "id": "tg-live",
     "name": "SONORA Live",
-    "tag": "From the channel",
-    "host": "Channel"
+    "tag": "Channel + library feed",
+    "host": "SONORA"
   },
   "streamUrl": "",
   "tracks": [
-    { "id": "my-song-01", "title": "My Song", "artist": "My Artist", "file": "audio/track1.mp3" },
-    { "id": "my-song-02", "title": "Second Example", "artist": "My Artist", "file": "audio/track2.mp3" }
+    {
+      "id": "ms-01-glass-horizon",
+      "title": "Glass Horizon",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-01-glass-horizon.mp3"
+    },
+    {
+      "id": "ms-02-midnight-signals",
+      "title": "Midnight Signals",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-02-midnight-signals.mp3"
+    },
+    {
+      "id": "ms-03-half-awake",
+      "title": "Half Awake",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-03-half-awake.mp3"
+    },
+    {
+      "id": "ms-04-sodium-lights",
+      "title": "Sodium Lights",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-04-sodium-lights.mp3"
+    },
+    {
+      "id": "ms-05-blue-hour",
+      "title": "Blue Hour",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-05-blue-hour.mp3"
+    },
+    {
+      "id": "ms-06-terminal-dreams",
+      "title": "Terminal Dreams",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-06-terminal-dreams.mp3"
+    },
+    {
+      "id": "ms-07-afterglow",
+      "title": "Afterglow",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-07-afterglow.mp3"
+    },
+    {
+      "id": "ms-08-signal-fade",
+      "title": "Signal Fade",
+      "artist": "Aurora Vale",
+      "file": "audio/ms-08-signal-fade.mp3"
+    }
   ],
   "messages": [
-    { "t": "Welcome to SONORA Live — tracks arrive from the channel.", "at": "2026-10-08T00:00:00Z" }
+    {
+      "t": "SONORA Live — continuous feed from real library files.",
+      "at": "2026-10-08T12:00:00Z"
+    },
+    {
+      "t": "Add tracks via Telegram bot or audio/manifest.json.",
+      "at": "2026-10-08T12:00:00Z"
+    }
   ]
 }
