@@ -1,7 +1,7 @@
 /* ============================================================
-   css/eq.css — SONORA Equalizer (redesigned)
-   Reliable cross-browser vertical sliders via rotate(-90deg).
-   Always uses gold accent for controls (independent of artist color).
+   css/eq.css — SONORA Equalizer
+   Reliable vertical sliders via rotate + centered thumbs.
+   Gold accent independent of artist color.
    ============================================================ */
 
 :root {
@@ -46,7 +46,7 @@
 .eq-head {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
@@ -69,6 +69,7 @@
 }
 .eq-head .sp {
   flex: 1;
+  min-width: 8px;
 }
 
 .eq-power {
@@ -102,6 +103,34 @@
   background: currentColor;
   margin-right: 8px;
   vertical-align: 1px;
+}
+
+/* Close button */
+.eq-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 238, 230, 0.17);
+  background: transparent;
+  color: var(--ink2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+.eq-close:hover {
+  border-color: var(--eq-gold);
+  color: var(--eq-gold);
+  background: var(--eq-gold-soft);
+}
+.eq-close:focus-visible {
+  outline: 1.5px solid var(--eq-gold);
+  outline-offset: 2px;
 }
 
 /* ---------- preset chips ---------- */
@@ -162,7 +191,7 @@
   vector-effect: non-scaling-stroke;
 }
 
-/* ---------- 10-band rack (custom vertical via rotate) ---------- */
+/* ---------- 10-band rack ---------- */
 .eq-rack {
   display: flex;
   gap: 2px;
@@ -199,69 +228,87 @@
   text-align: center;
 }
 
-/* Wrapper for rotated slider — reliable across Chrome/Firefox/Safari */
+/*
+  Vertical slider via absolute + translate + rotate.
+  transform-origin center keeps the thumb perfectly aligned
+  on the track (no crooked dots).
+*/
 .eq-slider-wrap {
   position: relative;
   width: 28px;
   height: 132px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
 }
 .eq-slider {
   -webkit-appearance: none;
   appearance: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 132px;
   height: 4px;
-  background: var(--eq-track);
-  border-radius: 4px;
-  outline: none;
-  transform: rotate(-90deg);
-  cursor: pointer;
   margin: 0;
   padding: 0;
+  border: none;
+  background: var(--eq-track);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
 }
 .eq-slider:focus-visible {
   outline: 1.5px solid var(--eq-gold);
   outline-offset: 4px;
-  border-radius: 4px;
+}
+
+/* WebKit thumb — no margin tricks, pure center */
+.eq-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--eq-track);
+  border-radius: 999px;
+  border: none;
 }
 .eq-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px; /* (14-4)/2 = 5 → centers on 4px track */
   border-radius: 50%;
   background: var(--eq-gold);
   border: 2px solid #0a0908;
-  box-shadow: 0 0 12px rgba(217, 164, 65, 0.55);
-  cursor: pointer;
+  box-shadow: 0 0 10px rgba(217, 164, 65, 0.5);
+  cursor: grab;
+  box-sizing: border-box;
 }
-.eq-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--eq-gold);
-  border: 2px solid #0a0908;
-  box-shadow: 0 0 12px rgba(217, 164, 65, 0.55);
-  cursor: pointer;
+.eq-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
 }
-.eq-slider::-webkit-slider-runnable-track {
-  height: 4px;
-  background: var(--eq-track);
-  border-radius: 4px;
-}
+
+/* Firefox */
 .eq-slider::-moz-range-track {
   height: 4px;
   background: var(--eq-track);
-  border-radius: 4px;
+  border-radius: 999px;
+  border: none;
+}
+.eq-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--eq-gold);
+  border: 2px solid #0a0908;
+  box-shadow: 0 0 10px rgba(217, 164, 65, 0.5);
+  cursor: grab;
+  box-sizing: border-box;
 }
 .eq-slider:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-/* ---------- preamp (horizontal, gold) ---------- */
+/* ---------- preamp ---------- */
 .eq-preamp {
   display: flex;
   align-items: center;
@@ -279,13 +326,16 @@
   white-space: nowrap;
 }
 .eq-slider.h {
+  position: static;
   transform: none;
   width: auto;
   flex: 1;
   height: 4px;
+  top: auto;
+  left: auto;
 }
 .eq-slider.h::-webkit-slider-thumb {
-  margin-top: -6px;
+  margin-top: -5px;
 }
 .eq-val {
   font-family: var(--mono);
@@ -330,7 +380,7 @@
   color: #0a0908;
 }
 
-/* bypassed state */
+/* bypassed */
 #eqPanel.eq-off .eq-rack,
 #eqPanel.eq-off .eq-curve {
   opacity: 0.42;
@@ -379,5 +429,9 @@
   }
   .eq-title {
     font-size: 18px;
+  }
+  .eq-close {
+    width: 32px;
+    height: 32px;
   }
 }
