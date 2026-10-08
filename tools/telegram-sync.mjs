@@ -2,7 +2,7 @@
 /**
  * SONORA Telegram → repo sync
  * Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
- * Bot must be channel admin. Only NEW posts from humans are received.
+ * Also tracks voice/video chat start/end → audio/live-status.json
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,6 +14,7 @@ const ROOT = process.cwd();
 const AUDIO = path.join(ROOT, 'audio');
 const MANIFEST = path.join(AUDIO, 'manifest.json');
 const FEED = path.join(AUDIO, 'radio-feed.json');
+const LIVE = path.join(AUDIO, 'live-status.json');
 const OFFSET_FILE = path.join(ROOT, '.telegram-offset');
 
 if (!TOKEN) {
@@ -88,6 +89,16 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
 }
 
+function setLive(live, title) {
+  writeJson(LIVE, {
+    live: !!live,
+    title: title || (live ? 'Channel voice chat is live' : ''),
+    link: CHANNEL.startsWith('@') ? `https://t.me/${CHANNEL.slice(1)}` : 'https://t.me/MrA_Music',
+    updatedAt: new Date().toISOString(),
+    note: 'Telegram VC audio cannot play inside a website. Join via Telegram.'
+  });
+}
+
 async function downloadFile(fileId, dest) {
   const f = await api('getFile', { file_id: fileId });
   const url = `https://api.telegram.org/file/bot${TOKEN}/${f.file_path}`;
@@ -149,6 +160,18 @@ async function processUpdate(u) {
   const msg = u.channel_post || u.message;
   if (!msg) return false;
   if (!chatMatches(msg.chat)) return false;
+
+  // Voice / video chat service messages
+  if (msg.video_chat_started || msg.video_chat_scheduled) {
+    console.log('Voice chat STARTED');
+    setLive(true, 'Channel voice chat is live');
+    return true;
+  }
+  if (msg.video_chat_ended) {
+    console.log('Voice chat ENDED');
+    setLive(false, '');
+    return true;
+  }
 
   const audio =
     msg.audio ||
@@ -223,12 +246,12 @@ async function main() {
       execSync('git diff --cached --quiet');
       console.log('Nothing to commit');
     } catch {
-      execSync('git commit -m "chore(telegram): sync channel audio"');
+      execSync('git commit -m "chore(telegram): sync channel audio / live status"');
       execSync('git push');
       console.log('Pushed changes');
     }
   } else {
-    console.log('No new audio posts to sync (post from your human account with caption template)');
+    console.log('No new audio/VC events');
   }
 }
 
