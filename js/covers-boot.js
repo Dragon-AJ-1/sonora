@@ -1,6 +1,14 @@
-/* Load BEFORE data.js — local cover paths + SVG fallback */
+/* Load BEFORE data.js — absolute local JPEG covers + SVG fallback */
 (function () {
   'use strict';
+
+  function abs(rel) {
+    try {
+      return new URL(rel, document.baseURI || window.location.href).href;
+    } catch (e) {
+      return rel;
+    }
+  }
 
   function __sonoraSvgCover(label, c1, c2, accent, sub, seed) {
     seed = seed || 0;
@@ -44,26 +52,25 @@
 
   window.__sonoraSvgCover = __sonoraSvgCover;
 
-  /* Prefer real local JPEGs (images/covers/*.jpg) */
-  var LOCAL = {
-    MS: 'images/covers/MS.jpg',
-    AUR: 'images/covers/AUR.jpg',
-    NIA: 'images/covers/NIA.jpg',
-    SORA: 'images/covers/SORA.jpg',
-    KAIRO: 'images/covers/KAIRO.jpg',
-    MILO: 'images/covers/MILO.jpg',
-    ELIAS: 'images/covers/ELIAS.jpg',
-    VERA: 'images/covers/VERA.jpg',
-    PC: 'images/covers/PC.jpg',
-    WS: 'images/covers/WS.jpg',
-    STUDIO: 'images/covers/STUDIO.jpg',
-    TOKYO: 'images/covers/TOKYO.jpg',
-    CLUB: 'images/covers/CLUB.jpg',
-    TAPE: 'images/covers/TAPE.jpg',
-    SESSION: 'images/covers/SESSION.jpg',
-    ORB: 'images/covers/ORB.jpg',
-    HALL: 'images/covers/HALL.jpg'
-  };
+  var KEYS = [
+    'MS',
+    'AUR',
+    'NIA',
+    'SORA',
+    'KAIRO',
+    'MILO',
+    'ELIAS',
+    'VERA',
+    'PC',
+    'WS',
+    'STUDIO',
+    'TOKYO',
+    'CLUB',
+    'TAPE',
+    'SESSION',
+    'ORB',
+    'HALL'
+  ];
 
   var FALLBACK = {
     MS: __sonoraSvgCover('Midnight Signals', '#0d0c0b', '#2a241c', '#6C8CFF', '2026', 1),
@@ -86,26 +93,36 @@
   };
 
   window.IMG = {};
-  Object.keys(LOCAL).forEach(function (k) {
-    window.IMG[k] = LOCAL[k];
+  window.SONORA_COVERS = {};
+  KEYS.forEach(function (k) {
+    var path = abs('images/covers/' + k + '.jpg');
+    window.IMG[k] = path;
+    window.SONORA_COVERS[k] = path;
+  });
+  window.SONORA_COVER_FALLBACK = FALLBACK;
+
+  /* Preload so first paint is less empty */
+  KEYS.forEach(function (k) {
+    var im = new Image();
+    im.onerror = function () {
+      window.IMG[k] = FALLBACK[k];
+      window.SONORA_COVERS[k] = FALLBACK[k];
+    };
+    im.src = window.IMG[k];
   });
 
-  /* If a JPEG 404s at runtime, swap to SVG */
   window.addEventListener(
     'error',
     function (e) {
       var el = e.target;
       if (!el || el.tagName !== 'IMG') return;
       var src = el.getAttribute('src') || '';
-      if (src.indexOf('images/covers/') < 0) return;
+      if (src.indexOf('images/covers/') < 0 && src.indexOf('/covers/') < 0) return;
       if (el.dataset.coverFb) return;
       el.dataset.coverFb = '1';
-      var base = src.split('/').pop().replace(/\.(jpg|png)$/i, '');
-      if (FALLBACK[base]) el.src = FALLBACK[base];
-      else if (FALLBACK.ORB) el.src = FALLBACK.ORB;
+      var base = src.split('/').pop().replace(/\.(jpg|png|jpeg|webp)$/i, '').toUpperCase();
+      el.src = FALLBACK[base] || FALLBACK.ORB;
     },
     true
   );
-
-  window.SONORA_COVER_FALLBACK = FALLBACK;
 })();
