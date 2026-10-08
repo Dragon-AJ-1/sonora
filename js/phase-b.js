@@ -1,9 +1,10 @@
 /**
- * SONORA Phase B (start) — Media Session + sleep timer fade
- * Keeps payload light; no accounts / no heavy deps.
+ * SONORA Phase B — Media Session, sleep fade, light crossfade
  */
 (function () {
   'use strict';
+
+  var CROSSFADE_MS = 1800;
 
   function nowMeta() {
     try {
@@ -54,7 +55,7 @@
     update();
   }
 
-  /** Sleep fade: last 12s reduce volume smoothly then pause */
+  /* Sleep fade last ~12s */
   var fading = false;
   setInterval(function () {
     if (!window.S || !S.sleep || S.sleep <= 0) {
@@ -84,6 +85,41 @@
       }, 500);
     }
   }, 1000);
+
+  /* Light volume dip before next track when near end (soft transition feel) */
+  var nearEndHandled = false;
+  if (window.audioEl) {
+    audioEl.addEventListener('timeupdate', function () {
+      if (!window.S || !S.playing || !S.playing.on) return;
+      var d = audioEl.duration;
+      if (!d || !isFinite(d)) return;
+      var left = d - audioEl.currentTime;
+      if (left < CROSSFADE_MS / 1000 && left > 0.05) {
+        if (!nearEndHandled) {
+          nearEndHandled = true;
+          try {
+            var target = (S.muted ? 0 : S.volume) * 0.35;
+            audioEl.volume = Math.max(target, audioEl.volume * 0.92);
+          } catch (e) {}
+        }
+      } else if (left > 2) {
+        nearEndHandled = false;
+        if (!fading && !S.muted && audioEl.volume < S.volume * 0.95) {
+          try {
+            audioEl.volume = Math.min(S.volume, audioEl.volume + 0.04);
+          } catch (e) {}
+        }
+      }
+    });
+    audioEl.addEventListener('play', function () {
+      nearEndHandled = false;
+      if (!fading && window.S && !S.muted) {
+        try {
+          audioEl.volume = S.volume;
+        } catch (e) {}
+      }
+    });
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
