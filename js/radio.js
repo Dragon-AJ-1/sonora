@@ -1,23 +1,22 @@
 /**
- * SONORA Radio — lightweight continuous player for GitHub Pages
- *
- * - Loads audio/radio-feed.json (kept small, updated by Telegram bot)
- * - Plays tracks in order, loops, cross-station via STATIONS still works
- * - Optional streamUrl (HLS/Icecast) if you host audio elsewhere
- * - On-air text messages from the channel shown as a live ticker
- * - No accounts, no heavy deps
+ * SONORA Radio — feed player (non-blocking load)
  */
 (function () {
   'use strict';
 
   var feed = null;
   var feedIdx = 0;
-  var tickerEl = null;
   var loaded = false;
+  var loading = null;
 
   function loadFeed() {
-    if (!window.fetch) return Promise.resolve(null);
-    return fetch('audio/radio-feed.json', { cache: 'no-store' })
+    if (loaded && feed) return Promise.resolve(feed);
+    if (loading) return loading;
+    if (!window.fetch) {
+      loaded = true;
+      return Promise.resolve(null);
+    }
+    loading = fetch('audio/radio-feed.json', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) return null;
         return r.json();
@@ -25,21 +24,19 @@
       .then(function (d) {
         feed = d;
         loaded = true;
+        loading = null;
         return d;
       })
       .catch(function () {
         loaded = true;
+        loading = null;
         return null;
       });
+    return loading;
   }
 
   function hasFeedTracks() {
     return feed && feed.tracks && feed.tracks.length > 0;
-  }
-
-  function currentFeedTrack() {
-    if (!hasFeedTracks()) return null;
-    return feed.tracks[feedIdx % feed.tracks.length];
   }
 
   function playFeedTrack(i) {
@@ -48,28 +45,21 @@
     var t = feed.tracks[feedIdx];
     if (!t || !t.file) return false;
 
-    // Hook into main app state if available
     try {
       if (window.S) {
-        S.radio = S.radio || { st: 'tg-live', idx: feedIdx, feed: true };
+        /* Use a real STATIONS id so pgRadio ON AIR block never crashes */
+        S.radio = S.radio || { st: 'late', idx: feedIdx, feed: true };
+        S.radio.st = S.radio.st || 'late';
+        if (S.radio.st === 'tg-live') S.radio.st = 'late';
         S.radio.idx = feedIdx;
         S.radio.feed = true;
+        if (!S.playing) S.playing = { al: 'ms', i: 0, t: 0, on: true, ctx: 'radio' };
         S.playing.ctx = 'radio';
+        S.playing.on = true;
       }
-      var el = window.audioEl || document.querySelector('audio');
-      // Prefer app play path when possible
-      if (typeof window.playManifestFile === 'function') {
-        window.playManifestFile(t);
-        return true;
-      }
-      // Direct fallback
       if (window.audioEl) {
         audioEl.src = t.file;
         audioEl.play().catch(function () {});
-        if (window.S) {
-          S.playing.on = true;
-          S.playing.t = 0;
-        }
         try {
           if (typeof renderMini === 'function') renderMini();
         } catch (e) {}
@@ -85,15 +75,15 @@
   }
 
   function startLiveRadio() {
+    /* Do not block UI — resolve feed then play */
     loadFeed().then(function () {
       if (feed && feed.streamUrl) {
-        // External real stream (HLS/Icecast) — only if user hosts one
         try {
           if (window.audioEl) {
             audioEl.src = feed.streamUrl;
             audioEl.play().catch(function () {});
             if (window.S) {
-              S.radio = { st: 'tg-live', idx: 0, feed: true, stream: true };
+              S.radio = { st: 'late', idx: 0, feed: true, stream: true };
               S.playing.ctx = 'radio';
               S.playing.on = true;
             }
@@ -107,10 +97,12 @@
         playFeedTrack(0);
         if (typeof toast === 'function') toast('SONORA Live — channel feed');
       } else if (typeof radioPlay === 'function') {
-        // Fall back to demo station pools
         radioPlay('late');
       }
       renderTicker();
+      try {
+        if (typeof render === 'function' && window.S && S.page === 'radio') render();
+      } catch (e) {}
     });
   }
 
@@ -133,23 +125,11 @@
       .join('');
   }
 
-  // When a track ends during feed radio, advance
-  document.addEventListener(
-    'SONORA_TRACK_ENDED',
-    function () {
-      if (window.S && S.radio && S.radio.feed && !S.radio.stream) nextFeed();
-    },
-    false
-  );
-
-  // Also patch native ended if app uses audioEl
   function wireEnded() {
     if (!window.audioEl || audioEl._radioWired) return;
     audioEl._radioWired = true;
     audioEl.addEventListener('ended', function () {
-      if (window.S && S.radio && S.radio.feed && !S.radio.stream) {
-        nextFeed();
-      }
+      if (window.S && S.radio && S.radio.feed && !S.radio.stream) nextFeed();
     });
   }
 
@@ -164,14 +144,13 @@
     wire: wireEnded
   };
 
-  // Boot: preload feed quietly
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       loadFeed();
-      setTimeout(wireEnded, 500);
+      setTimeout(wireEnded, 200);
     });
   } else {
     loadFeed();
-    setTimeout(wireEnded, 500);
+    setTimeout(wireEnded, 200);
   }
 })();
