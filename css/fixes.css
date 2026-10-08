@@ -1,6 +1,6 @@
 /* ============================================================
    SONORA — Fixes & Hardening
-   Progress bars, mini player, mobile, a11y
+   Progress bars, mini player, mobile, a11y + visual cohesion
    ============================================================ */
 
 /* Stronger hero gradient for title legibility */
@@ -28,12 +28,15 @@
   filter: brightness(1.15);
 }
 
-/* Mini player always above content, below full player */
+/* Layering — keep EQ above player chrome, below modals */
 #mini {
   z-index: 180;
 }
 #player {
   z-index: 220;
+}
+#eqPanel {
+  z-index: 230;
 }
 #searchOv,
 #modal {
@@ -44,11 +47,6 @@
 }
 
 /* Mobile bottom nav spacing when mini is open */
-#mini.on ~ #mnav,
-body:has(#mini.on) #mnav {
-  /* fallback: body padding handled by mini height */
-}
-
 @media (max-width: 800px) {
   .mgrid > * {
     grid-column: span 3 !important;
@@ -74,7 +72,10 @@ body:has(#mini.on) #mnav {
 .chip:focus-visible,
 .ibtn:focus-visible,
 .trow:focus-visible,
-.btn:focus-visible {
+.btn:focus-visible,
+.eq-chip:focus-visible,
+.eq-btn:focus-visible,
+.eq-power:focus-visible {
   outline: 2px solid var(--acc);
   outline-offset: 2px;
 }
@@ -101,7 +102,6 @@ body:has(#mini.on) #mnav {
     transform: none !important;
   }
 }
-
 
 /* Track rows are playable */
 .trow {
@@ -258,7 +258,6 @@ footer button:hover {
   color: var(--acc);
 }
 
-
 /* ===== Album cards: no overlapping titles ===== */
 .acard {
   display: flex;
@@ -385,4 +384,20 @@ footer button:hover {
 /* Player queue list */
 #player .trow {
   cursor: pointer;
+}
+
+/* ---- Extra cohesion for full player + EQ ---- */
+#player .top .ibtn {
+  transition: color .2s, background .2s;
+}
+#player .top .ibtn:hover {
+  color: var(--acc);
+}
+#toast {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+#toast.show {
+  animation: fadeUp .25s ease;
 }
