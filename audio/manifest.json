@@ -1,39 +1,93 @@
 {
   "_readme": [
-    "SONORA music manifest — HOW TO ADD MUSIC:",
-    "  1) Drop an .mp3 into /audio/",
-    "  2) Add ONE object below to the 'tracks' array",
-    "  3) Commit + push — no code editing needed.",
-    "",
-    "Fields: id (unique slug), file (relative path), title, artist, album are required;",
-    "year, genre, duration, cover are optional.",
-    "If 'cover' is missing (or its file 404s) the app reads the ID3 tags embedded",
-    "in the mp3 instead (title / artist / album / cover art) via js/id3.js.",
-    "Strict JSON: no // comments — keep notes in keys starting with '_'.",
-    "The two entries below are working examples pointing at bundled demo audio,",
-    "so they play immediately — replace or delete them."
+    "SONORA music manifest — source of truth for playable files.",
+    "Only list tracks whose audio file exists in /audio/.",
+    "1) Drop an .mp3 into /audio/",
+    "2) Add ONE object to the tracks array",
+    "3) Commit + push — no code edit needed.",
+    "Fields: id, file, title, artist, album required; year, genre, duration, cover optional.",
+    "If cover is missing, ID3 embedded art is used when available."
   ],
   "tracks": [
     {
-      "id": "my-song-01",
-      "file": "audio/track1.mp3",
-      "title": "My Song",
-      "artist": "My Artist",
-      "album": "My Album",
+      "id": "ms-01-glass-horizon",
+      "file": "audio/ms-01-glass-horizon.mp3",
+      "title": "Glass Horizon",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
       "year": 2026,
-      "genre": "Electronic",
-      "duration": "6:13",
-      "cover": "audio/covers/my-song-01.jpg"
+      "genre": "Alternative / Electronic",
+      "duration": "4:12"
     },
     {
-      "id": "my-song-02",
-      "file": "audio/track2.mp3",
-      "title": "Second Example",
-      "artist": "My Artist",
-      "album": "My Album",
+      "id": "ms-02-midnight-signals",
+      "file": "audio/ms-02-midnight-signals.mp3",
+      "title": "Midnight Signals",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
       "year": 2026,
-      "genre": "Alternative",
-      "duration": "5:00"
+      "genre": "Alternative / Electronic",
+      "duration": "5:03"
+    },
+    {
+      "id": "ms-03-half-awake",
+      "file": "audio/ms-03-half-awake.mp3",
+      "title": "Half Awake",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "3:58"
+    },
+    {
+      "id": "ms-04-sodium-lights",
+      "file": "audio/ms-04-sodium-lights.mp3",
+      "title": "Sodium Lights",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "4:26"
+    },
+    {
+      "id": "ms-05-blue-hour",
+      "file": "audio/ms-05-blue-hour.mp3",
+      "title": "Blue Hour",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "4:48"
+    },
+    {
+      "id": "ms-06-terminal-dreams",
+      "file": "audio/ms-06-terminal-dreams.mp3",
+      "title": "Terminal Dreams",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "5:11"
+    },
+    {
+      "id": "ms-07-afterglow",
+      "file": "audio/ms-07-afterglow.mp3",
+      "title": "Afterglow",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "4:02"
+    },
+    {
+      "id": "ms-08-signal-fade",
+      "file": "audio/ms-08-signal-fade.mp3",
+      "title": "Signal Fade",
+      "artist": "Aurora Vale",
+      "album": "Midnight Signals",
+      "year": 2026,
+      "genre": "Alternative / Electronic",
+      "duration": "3:41"
     }
   ]
 }
