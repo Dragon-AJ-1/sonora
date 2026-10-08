@@ -1,23 +1,25 @@
-/* SONORA Service Worker — Phase A
-   Cache-first static assets; network-first for music manifests. */
-const CACHE = 'sonora-v2';
+/* SONORA Service Worker v3 */
+const CACHE = 'sonora-v3';
 const PRECACHE = [
   './',
   './index.html',
   './css/styles.css',
   './css/fixes.css',
   './css/eq.css',
+  './js/covers-boot.js',
   './js/data.js',
   './js/covers.js',
   './js/eq.js',
   './js/id3.js',
   './js/app.js',
+  './js/phase-a.js',
   './js/deeplink.js',
   './js/radio.js',
   './js/share.js',
   './js/foryou.js',
   './js/seo.js',
-  './js/phase-a.js',
+  './js/phase-b.js',
+  './js/polish.js',
   './manifest.webmanifest',
   './robots.txt'
 ];
@@ -41,11 +43,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   const path = url.pathname;
-  const networkFirst =
-    path.endsWith('/audio/manifest.json') ||
-    path.endsWith('/audio/radio-feed.json');
-
-  if (networkFirst) {
+  if (path.endsWith('/audio/manifest.json') || path.endsWith('/audio/radio-feed.json')) {
     event.respondWith(
       fetch(event.request)
         .then((r) => {
@@ -58,11 +56,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Audio: network preferred, no aggressive cache of large binaries
   if (path.includes('/audio/') && path.endsWith('.mp3')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
     return;
   }
 
@@ -70,13 +65,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((r) => {
-        if (
-          r.ok &&
-          (path.endsWith('.css') ||
-            path.endsWith('.js') ||
-            path.endsWith('.html') ||
-            path.endsWith('.webmanifest'))
-        ) {
+        if (r.ok && (path.endsWith('.css') || path.endsWith('.js') || path.endsWith('.html') || path.endsWith('.webmanifest'))) {
           const clone = r.clone();
           caches.open(CACHE).then((c) => c.put(event.request, clone));
         }
